@@ -1,0 +1,27 @@
+services:
+  supertokens:
+    image: supertokens/supertokens-postgresql
+    container_name: supertokens
+    restart: always
+    ports:
+      - "3567:3567"
+    environment:
+      - POSTGRESQL_CONNECTION_URI=postgresql://supertokens:supertokens@db:5432/supertokens
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: supertokens_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: supertokens
+      POSTGRES_PASSWORD: supertokens
+      POSTGRES_DB: supertokens
+    volumes:
+      - supertokens_data:/var/lib/postgresql/data
+
+volumes:
+  supertokens_data:

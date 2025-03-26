@@ -1,0 +1,11 @@
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "1025:1025" # Porta SMTP
+      - "8025:8025" # Interface web
+    environment:
+      MAILPIT_SMTP_BIND_ADDR: "0.0.0.0:1025" # Configuração do servidor SMTP
+      MAILPIT_UI_BIND_ADDR: "0.0.0.0:8025"  # Configuração da interface web
+

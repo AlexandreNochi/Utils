@@ -1,0 +1,72 @@
+services:
+  zitadel:
+    user: "${UID:-1000}"
+    restart: 'always'
+    networks:
+      - 'zitadel'
+    image: 'ghcr.io/zitadel/zitadel:latest'
+    command: 'start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
+    environment:
+      ZITADEL_DATABASE_POSTGRES_HOST: db
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: postgres
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_EXTERNALSECURE: false
+      ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH: /machinekey/zitadel-admin-sa.json
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: zitadel-admin-sa
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Admin
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINEKEY_TYPE: 1
+
+      # Configurações de e-mail (SMTP via Mailpit)
+      ZITADEL_EMAIL_SMTP_HOST: mailpit
+      ZITADEL_EMAIL_SMTP_PORT: 1025
+      ZITADEL_EMAIL_SMTP_USER: ""
+      ZITADEL_EMAIL_SMTP_PASSWORD: ""
+      ZITADEL_EMAIL_FROM_ADDRESS: "no-reply@exemplo.com"
+
+    depends_on:
+      db:
+        condition: 'service_healthy'
+      mailpit:
+        condition: 'service_started'
+
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./machinekey:/machinekey
+
+  db:
+    restart: 'always'
+    image: postgres:16-alpine
+    environment:
+      PGUSER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - 'zitadel'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "zitadel", "-U", "postgres"]
+      interval: '10s'
+      timeout: '30s'
+      retries: 5
+      start_period: '20s'
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit-zitadel
+    ports:
+      - "1025:1025" # Porta SMTP
+      - "8025:8025" # Interface web
+    environment:
+      MAILPIT_SMTP_BIND_ADDR: "0.0.0.0:1025" 
+      MAILPIT_UI_BIND_ADDR: "0.0.0.0:8025"
+    networks:
+      - 'zitadel'
+
+networks:
+  zitadel:
+

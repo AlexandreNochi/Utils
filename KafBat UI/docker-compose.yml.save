@@ -1,0 +1,11 @@
+services:
+  kafbat-ui:
+    image: kafbat/kafka-ui:latest
+    container_name: kafbat-ui
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka-vps
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: IP_DA_VPS:9092
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: PLAINTEXT
